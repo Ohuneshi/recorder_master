@@ -3,625 +3,1168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>리코더 음정 연습 & 테스트</title>
+    <title>리코더 연습 및 실력 테스트</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Noto Sans KR -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            400: '#38bdf8',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                        },
+                        mint: {
+                            100: '#e6fffa',
+                            400: '#34d399',
+                            500: '#10b981',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans KR"', 'sans-serif'],
+                        cute: ['"Gowun Dodum"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --primary-color: #4f46e5;
-            --primary-hover: #4338ca;
-            --success-color: #10b981;
-            --error-color: #ef4444;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-color: #1e293b;
-        }
-
         body {
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f4f7fa;
+            touch-action: manipulation;
+        }
+        
+        .pulse-slow {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
 
-        .container {
-            width: 100%;
-            max-width: 700px;
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        .pop-in {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        h1 {
-            text-align: center;
-            font-size: 24px;
-            margin-bottom: 24px;
-            color: var(--primary-color);
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
 
-        .section {
-            margin-bottom: 24px;
-            padding: 20px;
-            background: #f1f5f9;
-            border-radius: 12px;
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-
-        .section h2 {
-            font-size: 16px;
-            margin-top: 0;
-            margin-bottom: 12px;
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
         }
-
-        /* 음 선택 버튼 그리드 */
-        .note-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-            gap: 8px;
-        }
-
-        .note-btn {
-            padding: 10px;
-            font-size: 14px;
-            font-weight: bold;
-            border: 2px solid #cbd5e1;
-            background: #ffffff;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .note-btn.active {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
-
-        .controls-row {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 16px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .controls-row label {
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .controls-row input[type="number"] {
-            width: 60px;
-            padding: 6px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            text-align: center;
-        }
-
-        /* 메인 게임/연습 화면 */
-        .game-panel {
-            text-align: center;
-            padding: 30px;
-            background: #ffffff;
-            border: 2px dashed #cbd5e1;
-            border-radius: 12px;
-            position: relative;
-        }
-
-        .target-display {
-            font-size: 48px;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin: 10px 0;
-        }
-
-        .current-detected {
-            font-size: 18px;
-            color: #64748b;
-            margin-bottom: 16px;
-            min-height: 24px;
-        }
-
-        .status-msg {
-            font-size: 20px;
-            font-weight: bold;
-            min-height: 30px;
-            margin-bottom: 20px;
-        }
-
-        .status-msg.correct { color: var(--success-color); }
-        .status-msg.incorrect { color: var(--error-color); }
-
-        .action-btns {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-        }
-
-        button.primary-btn {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        button.primary-btn:hover {
-            background: var(--primary-hover);
-        }
-
-        button.secondary-btn {
-            background: #e2e8f0;
-            color: var(--text-color);
-            border: none;
-            padding: 12px 24px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        button.secondary-btn:hover {
+        ::-webkit-scrollbar-thumb {
             background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
-        .progress-info {
-            font-size: 14px;
-            color: #64748b;
-            margin-bottom: 10px;
-        }
-
-        /* 결과 화면 모달 오버레이 스타일 */
-        .result-overlay {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
-
-        .result-title {
-            font-size: 22px;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin-bottom: 10px;
-        }
-
-        .result-score {
-            font-size: 42px;
-            font-weight: bold;
-            color: #1e293b;
-            margin-bottom: 15px;
-        }
-
-        .result-desc {
-            font-size: 16px;
-            color: #64748b;
-            margin-bottom: 25px;
+        /* Pitch meter needle transition */
+        .needle-transition {
+            transition: transform 0.12s ease-out;
         }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col items-center pb-12">
 
-<div class="container">
-    <h1>🎶 리코더 음정 연습 & 테스트</h1>
-
-    <!-- 1. 범위 설정 영역 -->
-    <div class="section" id="setup-section">
-        <h2>1. 문제 출제 범위 선택 (활성화할 음 클릭)</h2>
-        <div style="margin-bottom: 10px;">
-            <button class="secondary-btn" style="padding: 4px 10px; font-size: 12px;" onclick="selectAllNotes(true)">전체 선택</button>
-            <button class="secondary-btn" style="padding: 4px 10px; font-size: 12px;" onclick="selectAllNotes(false)">전체 해제</button>
-        </div>
-        <div class="note-grid" id="note-grid"></div>
-    </div>
-
-    <!-- 2. 모드 및 옵션 설정 -->
-    <div class="section" id="option-section">
-        <h2>2. 테스트 모드 설정</h2>
-        <div class="controls-row">
-            <label><input type="checkbox" id="test-mode-checkbox"> 테스트 모드 사용 (시간 제한 및 자동 진행)</label>
-        </div>
-        <div class="controls-row" id="test-options" style="opacity: 0.5; pointer-events: none;">
-            <div>
-                <label>제한 시간(초): </label>
-                <input type="number" id="time-limit" value="5" min="1" max="30">
+    <!-- Top Header -->
+    <header class="w-full bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-400 to-emerald-400 flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-music text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                        리코더 교실 <span class="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 font-semibold">초등용</span>
+                    </h1>
+                    <p class="text-xs text-slate-500">계이름 익히기 & 음정 실력 테스트</p>
+                </div>
             </div>
-            <div style="margin-left: 20px;">
-                <label>총 문제 수: </label>
-                <input type="number" id="total-questions" value="10" min="1" max="50">
+
+            <!-- Mode Selector Tabs -->
+            <div class="flex bg-slate-100 p-1 rounded-xl text-sm font-semibold">
+                <button id="tab-practice" onclick="switchMode('practice')" class="px-4 py-2 rounded-lg transition-all text-sky-600 bg-white shadow-sm">
+                    <i class="fa-solid fa-graduation-cap mr-1"></i> 연습 모드
+                </button>
+                <button id="tab-test" onclick="switchMode('test')" class="px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-700">
+                    <i class="fa-solid fa-stopwatch mr-1"></i> 실력 테스트
+                </button>
             </div>
         </div>
-    </div>
+    </header>
 
-    <!-- 3. 실행 패널 -->
-    <div class="game-panel">
-        <!-- 결과 화면 오버레이 -->
-        <div class="result-overlay" id="result-overlay">
-            <div class="result-title">🎉 테스트 종료!</div>
-            <div class="result-score" id="result-score-text">100점</div>
-            <div class="result-desc" id="result-desc-text">총 10문제 중 10문제 정답</div>
-            <button class="primary-btn" onclick="closeResultOverlay()">확인</button>
+    <!-- Main Container -->
+    <main class="w-full max-w-4xl px-4 mt-6">
+
+        <!-- ================= PRACTICE MODE ================= -->
+        <section id="practice-view" class="space-y-6">
+            <!-- Practice Control & Status Bar -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <button id="mic-toggle-btn" onclick="toggleMicrophone()" class="px-6 py-3 rounded-2xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-base shadow-lg shadow-sky-200 transition active:scale-95 flex items-center gap-2">
+                            <i id="mic-icon" class="fa-solid fa-microphone"></i>
+                            <span id="mic-btn-text">마이크 켜기</span>
+                        </button>
+                        <div class="text-xs text-slate-500">
+                            <p class="font-semibold text-slate-700">소리 감지 상태:</p>
+                            <span id="mic-status-badge" class="inline-block mt-0.5 px-2 py-0.5 rounded bg-slate-100 text-slate-600">마이크 꺼짐</span>
+                        </div>
+                    </div>
+
+                    <!-- Audio Pitch Tuner Card -->
+                    <div class="w-full md:w-72 bg-slate-50 p-3 rounded-2xl border border-slate-200 flex flex-col items-center">
+                        <span class="text-xs text-slate-400 font-medium">실시간 감지된 음계</span>
+                        <div class="flex items-baseline gap-2 my-1">
+                            <span id="practice-detected-solfege" class="text-3xl font-black text-sky-600">-</span>
+                            <span id="practice-detected-pitch" class="text-sm text-slate-400 font-mono">(--)</span>
+                        </div>
+                        <!-- Tuning meter bar -->
+                        <div class="w-full bg-slate-200 h-2 rounded-full relative overflow-hidden mt-1">
+                            <div id="practice-tuner-pointer" class="absolute top-0 bottom-0 w-2 bg-emerald-500 rounded-full needle-transition" style="left: 50%; transform: translateX(-50%);"></div>
+                        </div>
+                        <div class="flex justify-between w-full text-[10px] text-slate-400 mt-1 font-mono">
+                            <span>낮음</span>
+                            <span>정확함</span>
+                            <span>높음</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Note Selection Buttons -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80">
+                <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-music text-sky-500"></i> 연습할 음을 선택하세요
+                </h2>
+                <div id="practice-note-buttons" class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                    <!-- Dynamic Note Buttons Generated by JS -->
+                </div>
+            </div>
+
+            <!-- Selected Note Detail & Fingering Display -->
+            <div id="practice-detail-card" class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80 grid md:grid-cols-2 gap-6 items-center">
+                <!-- Left: Big Note Display -->
+                <div class="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-sky-50 to-indigo-50 rounded-2xl border border-sky-100 text-center">
+                    <span class="text-xs font-bold text-sky-600 tracking-wider uppercase mb-1">Target Note</span>
+                    <h3 id="target-note-solfege" class="text-5xl font-black text-slate-800 mb-1">도</h3>
+                    <p id="target-note-pitch" class="text-lg font-bold text-sky-500 font-mono">C5 (523.25 Hz)</p>
+                    <p id="target-note-desc" class="text-xs text-slate-500 mt-2">모든 구멍과 뒷구멍을 모두 막습니다.</p>
+
+                    <button onclick="playReferenceTone()" class="mt-4 px-4 py-2 rounded-xl bg-white border border-sky-200 hover:bg-sky-100 text-sky-700 text-sm font-semibold transition flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-volume-high text-sky-500"></i> 예시 소리 듣기
+                    </button>
+                </div>
+
+                <!-- Right: Visual Recorder Fingering Chart -->
+                <div class="flex flex-col items-center">
+                    <h4 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-1.5">
+                        <i class="fa-solid fa-hand-pointer text-emerald-500"></i> 운지법 (독일식/Standard)
+                    </h4>
+                    <div id="fingering-diagram-container" class="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex justify-center items-center">
+                        <!-- Dynamic SVG Fingering Diagram -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TEST MODE ================= -->
+        <section id="test-view" class="hidden space-y-6">
+
+            <!-- TEST SETTINGS SCREEN -->
+            <div id="test-settings-card" class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200/80 max-w-2xl mx-auto">
+                <div class="text-center mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center text-2xl mx-auto mb-3">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-800">리코더 실력 테스트 설정</h2>
+                    <p class="text-sm text-slate-500 mt-1">문제 수, 제한 시간, 포함할 음을 선택하고 테스트를 시작하세요!</p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Question Count -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">문제 수 선택</label>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button onclick="selectQuestionCount(5)" class="q-count-btn px-4 py-2.5 rounded-xl border text-sm font-bold transition border-sky-500 bg-sky-50 text-sky-700" data-val="5">5문제</button>
+                            <button onclick="selectQuestionCount(10)" class="q-count-btn px-4 py-2.5 rounded-xl border text-sm font-bold transition border-slate-200 bg-white text-slate-600" data-val="10">10문제</button>
+                            <button onclick="selectQuestionCount(15)" class="q-count-btn px-4 py-2.5 rounded-xl border text-sm font-bold transition border-slate-200 bg-white text-slate-600" data-val="15">15문제</button>
+                            <button onclick="selectQuestionCount(20)" class="q-count-btn px-4 py-2.5 rounded-xl border text-sm font-bold transition border-slate-200 bg-white text-slate-600" data-val="20">20문제</button>
+                        </div>
+                    </div>
+
+                    <!-- Time Limit Per Question -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">문제당 제한 시간</label>
+                        <div class="grid grid-cols-5 gap-2">
+                            <button onclick="selectTimeLimit(5)" class="time-btn px-3 py-2 rounded-xl border text-xs font-bold transition border-slate-200 bg-white text-slate-600" data-val="5">5초</button>
+                            <button onclick="selectTimeLimit(8)" class="time-btn px-3 py-2 rounded-xl border text-xs font-bold transition border-sky-500 bg-sky-50 text-sky-700" data-val="8">8초</button>
+                            <button onclick="selectTimeLimit(10)" class="time-btn px-3 py-2 rounded-xl border text-xs font-bold transition border-slate-200 bg-white text-slate-600" data-val="10">10초</button>
+                            <button onclick="selectTimeLimit(15)" class="time-btn px-3 py-2 rounded-xl border text-xs font-bold transition border-slate-200 bg-white text-slate-600" data-val="15">15초</button>
+                            <button onclick="selectTimeLimit(0)" class="time-btn px-3 py-2 rounded-xl border text-xs font-bold transition border-slate-200 bg-white text-slate-600" data-val="0">없음</button>
+                        </div>
+                    </div>
+
+                    <!-- Accuracy Strictness -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">판정 난이도 (허용 범위)</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="selectStrictness('easy')" class="strict-btn px-3 py-2 rounded-xl border text-xs font-bold transition border-slate-200 bg-white text-slate-600" data-val="easy">널널함 (쉬움)</button>
+                            <button onclick="selectStrictness('normal')" class="strict-btn px-3 py-2 rounded-xl border text-xs font-bold transition border-sky-500 bg-sky-50 text-sky-700" data-val="normal">보통 (추천)</button>
+                            <button onclick="selectStrictness('strict')" class="strict-btn px-3 py-2 rounded-xl border text-xs font-bold transition border-slate-200 bg-white text-slate-600" data-val="strict">엄격함 (어려움)</button>
+                        </div>
+                    </div>
+
+                    <!-- Note Range Selector -->
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-sm font-bold text-slate-700">출제할 음 범위 선택</label>
+                            <div class="flex gap-2 text-xs">
+                                <button onclick="presetSelectNotes('all')" class="text-sky-600 underline font-medium">전체선택</button>
+                                <span class="text-slate-300">|</span>
+                                <button onclick="presetSelectNotes('low')" class="text-sky-600 underline font-medium">낮은음(도~솔)</button>
+                                <span class="text-slate-300">|</span>
+                                <button onclick="presetSelectNotes('high')" class="text-sky-600 underline font-medium">높은음(라~높은미)</button>
+                            </div>
+                        </div>
+                        <div id="test-note-checkboxes" class="grid grid-cols-2 sm:grid-cols-5 gap-2 p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                            <!-- Checkboxes populated via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Start Button -->
+                    <button onclick="startTest()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-600 hover:to-emerald-600 text-white font-black text-lg shadow-xl shadow-sky-200 transition active:scale-[0.99]">
+                        <i class="fa-solid fa-play mr-2"></i> 테스트 시작하기
+                    </button>
+                </div>
+            </div>
+
+            <!-- ACTIVE TEST QUIZ SCREEN -->
+            <div id="test-active-card" class="hidden space-y-6">
+                <!-- STEP PROGRESS TRACKER -->
+                <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200/80">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Progress</span>
+                        <span id="test-question-counter" class="text-lg font-black text-sky-600 font-mono">Q1 / 5</span>
+                    </div>
+
+                    <!-- Visual Step Bubbles [1] [2] [3] [4] [5] -->
+                    <div id="step-tracker-container" class="flex items-center justify-between gap-1 overflow-x-auto py-1">
+                        <!-- Dynamic step circles -->
+                    </div>
+
+                    <!-- Timer Progress Bar -->
+                    <div id="timer-bar-container" class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mt-4">
+                        <div id="timer-progress-fill" class="bg-gradient-to-r from-emerald-400 to-sky-500 h-full w-full transition-all duration-200"></div>
+                    </div>
+                </div>
+
+                <!-- Main Question Display Card -->
+                <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200/80 relative overflow-hidden">
+                    <!-- Status feedback banner overlay (Correct / Wrong / Time Out) -->
+                    <div id="question-feedback-overlay" class="hidden absolute inset-0 bg-white/95 backdrop-blur-sm z-20 flex flex-col items-center justify-center pop-in">
+                        <div id="feedback-icon-container" class="text-6xl mb-2">🎉</div>
+                        <h3 id="feedback-text-main" class="text-3xl font-black text-emerald-600">정답입니다!</h3>
+                        <p id="feedback-text-sub" class="text-sm text-slate-500 mt-1">다음 문제로 이동합니다...</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <!-- Target Pitch Box -->
+                        <div class="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-sky-500 to-indigo-600 text-white rounded-3xl shadow-lg text-center">
+                            <span class="text-xs font-bold text-sky-100 uppercase tracking-widest mb-1">연주해야 할 음계</span>
+                            <h2 id="quiz-target-solfege" class="text-6xl font-black my-2">도</h2>
+                            <p id="quiz-target-pitch" class="text-xl font-bold font-mono text-sky-200">C5</p>
+
+                            <!-- Hint Toggle -->
+                            <button onclick="toggleFingeringHint()" class="mt-4 px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-semibold backdrop-blur transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-lightbulb"></i> <span id="hint-btn-label">운지법 힌트 보기</span>
+                            </button>
+                        </div>
+
+                        <!-- Realtime Mic Detection & Hint Box -->
+                        <div class="flex flex-col items-center space-y-4">
+                            <!-- Fingering Hint (Hidden by default or toggled) -->
+                            <div id="quiz-fingering-hint-box" class="hidden w-full p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-center">
+                                <div id="quiz-fingering-diagram" class="scale-90"></div>
+                            </div>
+
+                            <!-- Detection Monitor Card -->
+                            <div class="w-full bg-slate-50 p-5 rounded-2xl border border-slate-200 flex flex-col items-center">
+                                <span class="text-xs font-semibold text-slate-400">마이크 감지 소리</span>
+                                <div class="flex items-baseline gap-2 my-2">
+                                    <span id="test-detected-solfege" class="text-4xl font-black text-slate-700">-</span>
+                                    <span id="test-detected-pitch" class="text-base text-slate-400 font-mono">(--)</span>
+                                </div>
+
+                                <!-- Pitch Stability Progress -->
+                                <div class="w-full space-y-1">
+                                    <div class="flex justify-between text-[11px] text-slate-500 font-semibold">
+                                        <span>음 정확도</span>
+                                        <span id="test-hold-percentage">0%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
+                                        <div id="test-hold-bar" class="bg-emerald-500 h-full w-0 transition-all duration-75"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Manual Skip / Next button -->
+                            <button onclick="skipQuestion()" class="text-xs font-bold text-slate-400 hover:text-slate-600 underline">
+                                이 문제 건너뛰기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= RESULT MODAL ================= -->
+        <div id="test-result-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div class="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl border border-slate-100 my-8 pop-in">
+                <div class="text-center">
+                    <div id="result-badge-icon" class="w-20 h-20 rounded-3xl bg-amber-100 text-amber-500 flex items-center justify-center text-4xl mx-auto mb-4 shadow-inner">
+                        🏆
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-800">테스트 완료!</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">수고하셨습니다. 결과표를 확인해보세요!</p>
+
+                    <!-- Score Box -->
+                    <div class="my-6 p-4 bg-gradient-to-br from-slate-50 to-sky-50 rounded-2xl border border-slate-200 flex justify-around items-center">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-400">최종 점수</span>
+                            <div class="text-4xl font-black text-sky-600 mt-1"><span id="result-score-val">100</span><span class="text-lg">점</span></div>
+                        </div>
+                        <div class="h-10 w-[1px] bg-slate-200"></div>
+                        <div>
+                            <span class="text-xs font-semibold text-slate-400">평가 등급</span>
+                            <div id="result-stars" class="text-xl text-amber-400 mt-1">⭐⭐⭐⭐⭐</div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Stats -->
+                    <div class="grid grid-cols-3 gap-2 text-center text-xs mb-6">
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <span class="text-slate-400 block mb-1">총 문제</span>
+                            <span id="result-stat-total" class="font-bold text-slate-700 text-sm">5개</span>
+                        </div>
+                        <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                            <span class="text-emerald-600 block mb-1">정답</span>
+                            <span id="result-stat-correct" class="font-bold text-emerald-700 text-sm">5개</span>
+                        </div>
+                        <div class="bg-rose-50 p-3 rounded-xl border border-rose-100">
+                            <span class="text-rose-600 block mb-1">오답/초과</span>
+                            <span id="result-stat-wrong" class="font-bold text-rose-700 text-sm">0개</span>
+                        </div>
+                    </div>
+
+                    <!-- Question Breakdown List -->
+                    <div class="text-left mb-6">
+                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">문제별 결과 상세</h4>
+                        <div id="result-breakdown-list" class="max-h-40 overflow-y-auto space-y-1.5 pr-1 text-xs">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-3">
+                        <button onclick="closeResultModal(); startTest();" class="flex-1 py-3.5 rounded-2xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-sm shadow-lg shadow-sky-100 transition">
+                            <i class="fa-solid fa-rotate-right mr-1"></i> 다시 도전
+                        </button>
+                        <button onclick="closeResultModal(); showTestSettings();" class="flex-1 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition">
+                            <i class="fa-solid fa-gear mr-1"></i> 설정 변경
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="progress-info" id="progress-info" style="display: none;">문제 1 / 10</div>
-        <div style="font-size: 14px; color: #64748b;">제시된 음</div>
-        <div class="target-display" id="target-note">-</div>
-        <div class="current-detected" id="current-detected">마이크 대기 중</div>
-        <div class="status-msg" id="status-msg">마이크 권한을 허용하고 시작해주세요</div>
-        
-        <div class="action-btns">
-            <button class="primary-btn" id="start-btn" onclick="startSession()">연습/테스트 시작</button>
-            <button class="secondary-btn" id="stop-btn" onclick="stopSession()" style="display: none;">중지</button>
-        </div>
-    </div>
-</div>
+    </main>
 
-<script>
-    const recorderNotes = [
-        { id: 'C5', name: '도 (C5)', kor: '도', freq: 523.25 },
-        { id: 'D5', name: '레 (D5)', kor: '레', freq: 587.33 },
-        { id: 'E5', name: '미 (E5)', kor: '미', freq: 659.25 },
-        { id: 'F5', name: '파 (F5)', kor: '파', freq: 698.46 },
-        { id: 'G5', name: '솔 (G5)', kor: '솔', freq: 783.99 },
-        { id: 'A5', name: '라 (A5)', kor: '라', freq: 880.00 },
-        { id: 'B5', name: '시 (B5)', kor: '시', freq: 987.77 },
-        { id: 'C6', name: '높은도 (C6)', kor: '높은도', freq: 1046.50 },
-        { id: 'D6', name: '높은레 (D6)', kor: '높은레', freq: 1174.66 },
-        { id: 'E6', name: '높은미 (E6)', kor: '높은미', freq: 1318.51 },
-        { id: 'F6', name: '높은파 (F6)', kor: '높은파', freq: 1396.91 },
-        { id: 'G6', name: '높은솔 (G6)', kor: '높은솔', freq: 1567.98 }
-    ];
+    <script>
+        /* Soprano Recorder Notes Data (German fingering standard for Korean elementary schools) */
+        const NOTE_DATA = [
+            { id: 'c5', name: '도', pitch: 'C5', freq: 523.25, group: 'low', thumb: true, holes: [true, true, true, true, true, true, true], desc: '모든 구멍(뒷구멍+1~7번)을 다 막습니다.' },
+            { id: 'd5', name: '레', pitch: 'D5', freq: 587.33, group: 'low', thumb: true, holes: [true, true, true, true, true, true, false], desc: '맨 아래 7번 구멍만 엽니다.' },
+            { id: 'e5', name: '미', pitch: 'E5', freq: 659.25, group: 'low', thumb: true, holes: [true, true, true, true, true, false, false], desc: '6번, 7번 구멍을 엽니다.' },
+            { id: 'f5', name: '파', pitch: 'F5', freq: 698.46, group: 'low', thumb: true, holes: [true, true, true, true, false, false, false], desc: '독일식: 5,6,7번 구멍을 엽니다.' },
+            { id: 'g5', name: '솔', pitch: 'G5', freq: 783.99, group: 'low', thumb: true, holes: [true, true, true, false, false, false, false], desc: '왼손 3개(1,2,3번)만 막습니다.' },
+            { id: 'a5', name: '라', pitch: 'A5', freq: 880.00, group: 'high', thumb: true, holes: [true, true, false, false, false, false, false], desc: '왼손 1,2번 구멍만 막습니다.' },
+            { id: 'b5', name: '시', pitch: 'B5', freq: 987.77, group: 'high', thumb: true, holes: [true, false, false, false, false, false, false], desc: '왼손 1번 구멍만 막습니다.' },
+            { id: 'c6', name: '높은 도', pitch: 'C6', freq: 1046.50, group: 'high', thumb: true, holes: [false, true, false, false, false, false, false], desc: '뒷구멍과 2번 구멍만 막습니다.' },
+            { id: 'd6', name: '높은 레', pitch: 'D6', freq: 1174.66, group: 'high', thumb: false, holes: [false, true, false, false, false, false, false], desc: '뒷구멍을 열고 2번 구멍만 막습니다.' },
+            { id: 'e6', name: '높은 미', pitch: 'E6', freq: 1318.51, group: 'high', thumb: 'half', holes: [true, true, true, true, true, false, false], desc: '뒷구멍을 반만 막고 1~5번 구멍을 막습니다.' }
+        ];
 
-    let activeNotes = new Set(recorderNotes.map(n => n.id));
-    let isRunning = false;
-    let currentTarget = null;
-    let isWaitingNext = false;
-    let audioContext = null;
-    let analyser = null;
-    let microphone = null;
-    let animationId = null;
+        /* Global Application State */
+        let currentMode = 'practice'; // 'practice' or 'test'
+        let selectedPracticeNote = NOTE_DATA[0];
 
-    // 점수 및 테스트 통계 변수
-    let testTimer = null;
-    let timeLeft = 5;
-    let questionCount = 10;
-    let currentQIndex = 0;
-    let correctCount = 0;
+        /* Test Config State */
+        let testConfig = {
+            questionCount: 5,
+            timeLimit: 8, // seconds per question (0 = unlimited)
+            strictness: 'normal', // 'easy', 'normal', 'strict'
+            selectedNotes: NOTE_DATA.map(n => n.id)
+        };
 
-    // 음 잔류/연속성 판정용 변수 (반응 속도를 높이기 위해 프레임 조건 완화)
-    let consecutiveFrames = 0;
-    let lastDetectedId = null;
-    const REQUIRED_CONSECUTIVE = 2; // 2프레임만 일치해도 빠르게 인식
+        /* Active Test Runtime State */
+        let testRuntime = {
+            questions: [],
+            currentIndex: 0,
+            score: 0,
+            correctCount: 0,
+            wrongCount: 0,
+            startTime: 0,
+            questionStartTime: 0,
+            results: [], // array of { note, isCorrect, timeSpent }
+            showHint: false
+        };
 
-    const noteGrid = document.getElementById('note-grid');
-    recorderNotes.forEach(note => {
-        const btn = document.createElement('button');
-        btn.className = 'note-btn active';
-        btn.textContent = note.kor;
-        btn.id = `btn-${note.id}`;
-        btn.onclick = () => toggleNote(note.id, btn);
-        noteGrid.appendChild(btn);
-    });
+        /* Concurrency & Transition Lock Flags */
+        let isQuestionTransitioning = false; // Locks answer processing during feedback/transitions
+        let canAcceptAnswer = false;          // Enforces mandatory 600ms grace period after loading new Q
+        let testTimer = null;                 // Timer reference for question countdown
 
-    function toggleNote(id, btn) {
-        if (isRunning) return;
-        if (activeNotes.has(id)) {
-            activeNotes.delete(id);
-            btn.classList.remove('active');
-        } else {
-            activeNotes.add(id);
-            btn.classList.add('active');
-        }
-    }
+        /* Pitch Detection Ring Buffer & Latency Control */
+        let noteHistoryBuffer = [];          // Holds last 3 detected note IDs for fast filtering
 
-    function selectAllNotes(select) {
-        if (isRunning) return;
-        activeNotes.clear();
-        recorderNotes.forEach(note => {
-            const btn = document.getElementById(`btn-${note.id}`);
-            if (select) {
-                activeNotes.add(note.id);
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
+        /* Audio Web API Nodes */
+        let audioCtx = null;
+        let analyser = null;
+        let micStream = null;
+        let isMicActive = false;
+        let animationFrameId = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderPracticeButtons();
+            renderTestNoteCheckboxes();
+            updatePracticeDisplay();
+            renderFingeringDiagram('fingering-diagram-container', selectedPracticeNote);
         });
-    }
 
-    const testModeCheckbox = document.getElementById('test-mode-checkbox');
-    const testOptions = document.getElementById('test-options');
-    testModeCheckbox.onchange = () => {
-        if (testModeCheckbox.checked) {
-            testOptions.style.opacity = '1';
-            testOptions.style.pointerEvents = 'auto';
-        } else {
-            testOptions.style.opacity = '0.5';
-            testOptions.style.pointerEvents = 'none';
-        }
-    };
+        /* Mode Switcher */
+        function switchMode(mode) {
+            currentMode = mode;
+            const practiceView = document.getElementById('practice-view');
+            const testView = document.getElementById('test-view');
+            const tabPractice = document.getElementById('tab-practice');
+            const tabTest = document.getElementById('tab-test');
 
-    async function setupAudio() {
-        try {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-            microphone = audioContext.createMediaStreamSource(stream);
-            analyser = audioContext.createAnalyser();
-            analyser.fftSize = 2048;
-            microphone.connect(analyser);
-            return true;
-        } catch (err) {
-            alert('마이크 접근 권한이 필요합니다. 브라우저 설정을 확인해주세요.');
-            console.error(err);
-            return false;
-        }
-    }
-
-    async function startSession() {
-        if (activeNotes.size === 0) {
-            alert('출제할 음을 최소 하나 이상 선택해주세요!');
-            return;
-        }
-
-        if (!audioContext) {
-            const success = await setupAudio();
-            if (!success) return;
-        } else if (audioContext.state === 'suspended') {
-            await audioContext.resume();
-        }
-
-        isRunning = true;
-        isWaitingNext = false;
-        correctCount = 0;
-        resetDetectionState();
-
-        document.getElementById('result-overlay').style.display = 'none';
-        document.getElementById('start-btn').style.display = 'none';
-        document.getElementById('stop-btn').style.display = 'inline-block';
-        document.getElementById('setup-section').style.opacity = '0.5';
-        document.getElementById('setup-section').style.pointerEvents = 'none';
-        document.getElementById('option-section').style.opacity = '0.5';
-        document.getElementById('option-section').style.pointerEvents = 'none';
-
-        if (testModeCheckbox.checked) {
-            questionCount = parseInt(document.getElementById('total-questions').value) || 10;
-            currentQIndex = 0;
-            document.getElementById('progress-info').style.display = 'block';
-            nextTestQuestion();
-        } else {
-            document.getElementById('progress-info').style.display = 'none';
-            pickRandomTarget();
-            document.getElementById('status-msg').textContent = '리코더로 해당 음을 불어보세요!';
-            document.getElementById('status-msg').className = 'status-msg';
-        }
-
-        detectPitch();
-    }
-
-    function stopSession() {
-        isRunning = false;
-        isWaitingNext = false;
-        if (animationId) cancelAnimationFrame(animationId);
-        if (testTimer) clearInterval(testTimer);
-
-        document.getElementById('start-btn').style.display = 'inline-block';
-        document.getElementById('stop-btn').style.display = 'none';
-        document.getElementById('setup-section').style.opacity = '1';
-        document.getElementById('setup-section').style.pointerEvents = 'auto';
-        document.getElementById('option-section').style.opacity = '1';
-        document.getElementById('option-section').style.pointerEvents = 'auto';
-        document.getElementById('progress-info').style.display = 'none';
-        
-        document.getElementById('target-note').textContent = '-';
-        document.getElementById('current-detected').textContent = '마이크 대기 중';
-        document.getElementById('status-msg').textContent = '연습이 중지되었습니다.';
-        document.getElementById('status-msg').className = 'status-msg';
-    }
-
-    function resetDetectionState() {
-        consecutiveFrames = 0;
-        lastDetectedId = null;
-    }
-
-    function pickRandomTarget() {
-        const notesArr = Array.from(activeNotes);
-        const randomIndex = Math.floor(Math.random() * notesArr.length);
-        const targetId = notesArr[randomIndex];
-        currentTarget = recorderNotes.find(n => n.id === targetId);
-        document.getElementById('target-note').textContent = currentTarget.kor;
-        isWaitingNext = false;
-        resetDetectionState();
-    }
-
-    function nextTestQuestion() {
-        if (!isRunning) return;
-
-        if (testTimer) clearInterval(testTimer);
-
-        if (currentQIndex >= questionCount) {
-            const score = Math.round((correctCount / questionCount) * 100);
-            showResultOverlay(score, questionCount, correctCount);
-            stopSession();
-            return;
-        }
-
-        currentQIndex++;
-        document.getElementById('progress-info').textContent = `문제 ${currentQIndex} / ${questionCount}`;
-        pickRandomTarget();
-        
-        const timeLimitSec = parseInt(document.getElementById('time-limit').value) || 5;
-        timeLeft = timeLimitSec;
-        document.getElementById('status-msg').textContent = `남은 시간: ${timeLeft}초`;
-        document.getElementById('status-msg').className = 'status-msg';
-
-        testTimer = setInterval(() => {
-            if (!isRunning) {
-                clearInterval(testTimer);
-                return;
-            }
-
-            timeLeft--;
-            if (timeLeft > 0) {
-                document.getElementById('status-msg').textContent = `남은 시간: ${timeLeft}초`;
+            if (mode === 'practice') {
+                practiceView.classList.remove('hidden');
+                testView.classList.add('hidden');
+                tabPractice.className = "px-4 py-2 rounded-lg transition-all text-sky-600 bg-white shadow-sm";
+                tabTest.className = "px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-700";
+                stopTestTimers();
             } else {
-                clearInterval(testTimer);
-                if (isWaitingNext) return;
-                isWaitingNext = true;
-                resetDetectionState();
-                document.getElementById('status-msg').textContent = '시간 초과!';
-                document.getElementById('status-msg').className = 'status-msg incorrect';
-                setTimeout(() => {
-                    if (isRunning) nextTestQuestion();
-                }, 1000);
+                practiceView.classList.add('hidden');
+                testView.classList.remove('hidden');
+                tabTest.className = "px-4 py-2 rounded-lg transition-all text-sky-600 bg-white shadow-sm";
+                tabPractice.className = "px-4 py-2 rounded-lg transition-all text-slate-500 hover:text-slate-700";
+                showTestSettings();
             }
-        }, 1000);
-    }
+        }
 
-    function showResultOverlay(score, total, correct) {
-        document.getElementById('result-score-text').textContent = `${score}점`;
-        document.getElementById('result-desc-text').textContent = `총 ${total}문제 중 ${correct}문제 정답`;
-        document.getElementById('result-overlay').style.display = 'flex';
-    }
+        /* Render Practice Note Selection Buttons */
+        function renderPracticeButtons() {
+            const container = document.getElementById('practice-note-buttons');
+            container.innerHTML = NOTE_DATA.map(note => {
+                const isActive = note.id === selectedPracticeNote.id;
+                const activeClass = isActive 
+                    ? 'bg-sky-500 text-white shadow-md shadow-sky-200 border-sky-500' 
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200';
+                return `
+                    <button onclick="selectPracticeNote('${note.id}')" class="p-3 rounded-2xl border text-center transition active:scale-95 flex flex-col items-center ${activeClass}">
+                        <span class="text-xl font-black">${note.name}</span>
+                        <span class="text-[11px] opacity-80 font-mono">${note.pitch}</span>
+                    </button>
+                `;
+            }).join('');
+        }
 
-    function closeResultOverlay() {
-        document.getElementById('result-overlay').style.display = 'none';
-        document.getElementById('target-note').textContent = '-';
-        document.getElementById('current-detected').textContent = '마이크 대기 중';
-        document.getElementById('status-msg').textContent = '연습/테스트를 준비하세요.';
-        document.getElementById('status-msg').className = 'status-msg';
-    }
+        function selectPracticeNote(noteId) {
+            selectedPracticeNote = NOTE_DATA.find(n => n.id === noteId) || NOTE_DATA[0];
+            renderPracticeButtons();
+            updatePracticeDisplay();
+            renderFingeringDiagram('fingering-diagram-container', selectedPracticeNote);
+        }
 
-    function detectPitch() {
-        if (!isRunning) return;
+        function updatePracticeDisplay() {
+            document.getElementById('target-note-solfege').innerText = selectedPracticeNote.name;
+            document.getElementById('target-note-pitch').innerText = `${selectedPracticeNote.pitch} (${selectedPracticeNote.freq} Hz)`;
+            document.getElementById('target-note-desc').innerText = selectedPracticeNote.desc;
+        }
 
-        const bufferLength = analyser.fftSize;
-        const buffer = new Float32Array(bufferLength);
-        analyser.getFloatTimeDomainData(buffer);
+        /* Render SVG Recorder Fingering Diagram */
+        function renderFingeringDiagram(containerId, note) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
 
-        let ac = autoCorrelate(buffer, audioContext.sampleRate);
+            const getFill = (isCovered) => {
+                if (isCovered === 'half') return 'url(#half-fill)';
+                return isCovered ? '#334155' : '#ffffff';
+            };
 
-        if (ac !== -1 && !isWaitingNext) {
-            let detectedNoteObj = findClosestNote(ac);
-            if (detectedNoteObj) {
-                // 마이크 소리 감지 시 화면에 표시
-                document.getElementById('current-detected').textContent = `현재 감지된 음: ${detectedNoteObj.kor} (${Math.round(ac)}Hz)`;
+            const thumbFill = getFill(note.thumb);
+            const holeFills = note.holes.map(h => getFill(h));
 
-                if (detectedNoteObj.id === lastDetectedId) {
-                    consecutiveFrames++;
+            const svgHTML = `
+                <svg width="110" height="230" viewBox="0 0 110 230" class="drop-shadow-sm">
+                    <defs>
+                        <linearGradient id="half-fill" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="50%" stop-color="#334155" />
+                            <stop offset="50%" stop-color="#ffffff" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Recorder Body -->
+                    <rect x="35" y="10" width="40" height="210" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="3" />
+                    
+                    <!-- Thumb Hole (Back) -->
+                    <text x="5" y="32" font-size="9" font-weight="bold" fill="#64748b">뒷구멍</text>
+                    <circle cx="20" cy="28" r="8" fill="${thumbFill}" stroke="#334155" stroke-width="2" />
+
+                    <!-- Front Holes (1 to 7) -->
+                    ${holeFills.map((fill, idx) => `
+                        <circle cx="55" cy="${35 + idx * 24}" r="7" fill="${fill}" stroke="#334155" stroke-width="2" />
+                        <text x="70" y="${38 + idx * 24}" font-size="9" font-weight="bold" fill="#94a3b8">${idx + 1}</text>
+                    `).join('')}
+                </svg>
+            `;
+            container.innerHTML = svgHTML;
+        }
+
+        /* Reference Tone Generator */
+        function playReferenceTone() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(selectedPracticeNote.freq, ctx.currentTime);
+
+                gain.gain.setValueAtTime(0.01, ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start();
+                osc.stop(ctx.currentTime + 1.2);
+            } catch (e) {
+                console.error("Audio playback error:", e);
+            }
+        }
+
+        /* Microphone & Audio Pipeline Initialization with Noise Filtering */
+        async function toggleMicrophone() {
+            if (isMicActive) {
+                stopMicrophone();
+            } else {
+                await startMicrophone();
+            }
+        }
+
+        async function startMicrophone() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') {
+                    await audioCtx.resume();
+                }
+
+                // CRITICAL FOR RECORDERS: Disable Echo Cancellation and Speech Noise Suppression
+                micStream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: { 
+                        echoCancellation: false, 
+                        noiseSuppression: false, 
+                        autoGainControl: false 
+                    } 
+                });
+
+                const source = audioCtx.createMediaStreamSource(micStream);
+                
+                // Bandpass Filter Chain: Cut out ambient room rumble (<400Hz) and high squeaks (>1500Hz)
+                const hpFilter = audioCtx.createBiquadFilter();
+                hpFilter.type = 'highpass';
+                hpFilter.frequency.value = 400; // Just below C5 (523Hz)
+
+                const lpFilter = audioCtx.createBiquadFilter();
+                lpFilter.type = 'lowpass';
+                lpFilter.frequency.value = 1500; // Just above E6 (1318Hz)
+
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 2048; // Fast buffer size for instant processing
+
+                // Connect chain: Mic Source -> Highpass -> Lowpass -> Analyser
+                source.connect(hpFilter);
+                hpFilter.connect(lpFilter);
+                lpFilter.connect(analyser);
+
+                isMicActive = true;
+                noteHistoryBuffer = [];
+                updateMicUI(true);
+                processAudioLoop();
+            } catch (err) {
+                alert("마이크 접근에 실패했습니다. 마이크 권한을 허용해 주세요.");
+                console.error("Mic error:", err);
+            }
+        }
+
+        function stopMicrophone() {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            if (micStream) {
+                micStream.getTracks().forEach(track => track.stop());
+                micStream = null;
+            }
+            if (audioCtx) {
+                audioCtx.close();
+                audioCtx = null;
+            }
+            isMicActive = false;
+            noteHistoryBuffer = [];
+            updateMicUI(false);
+            resetDetectionDisplays();
+        }
+
+        function updateMicUI(active) {
+            const btn = document.getElementById('mic-toggle-btn');
+            const icon = document.getElementById('mic-icon');
+            const text = document.getElementById('mic-btn-text');
+            const badge = document.getElementById('mic-status-badge');
+
+            if (active) {
+                btn.className = "px-6 py-3 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-base shadow-lg shadow-rose-200 transition active:scale-95 flex items-center gap-2";
+                icon.className = "fa-solid fa-microphone-slash";
+                text.innerText = "마이크 끄기";
+                badge.className = "inline-block mt-0.5 px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold";
+                badge.innerText = "작동 중 (음성 입력 감지)";
+            } else {
+                btn.className = "px-6 py-3 rounded-2xl bg-sky-500 hover:bg-sky-600 text-white font-bold text-base shadow-lg shadow-sky-200 transition active:scale-95 flex items-center gap-2";
+                icon.className = "fa-solid fa-microphone";
+                text.innerText = "마이크 켜기";
+                badge.className = "inline-block mt-0.5 px-2 py-0.5 rounded bg-slate-100 text-slate-600";
+                badge.innerText = "마이크 꺼짐";
+            }
+        }
+
+        /* Real-Time Audio Loop with Ultra-Low Latency Autocorrelation */
+        function processAudioLoop() {
+            if (!isMicActive || !analyser) return;
+
+            const buffer = new Float32Array(analyser.fftSize);
+            analyser.getFloatTimeDomainData(buffer);
+
+            // Compute RMS Volume Level
+            let sumSquare = 0;
+            for (let i = 0; i < buffer.length; i++) {
+                sumSquare += buffer[i] * buffer[i];
+            }
+            const rms = Math.sqrt(sumSquare / buffer.length);
+
+            // Silence threshold check (Silence or mic off resets detection immediately)
+            if (rms < 0.012) {
+                resetDetectionDisplays();
+                noteHistoryBuffer = [];
+            } else {
+                const pitchFreq = autoCorrelate(buffer, audioCtx.sampleRate);
+                if (pitchFreq > 0) {
+                    const detectedMatch = findClosestNote(pitchFreq, testConfig.strictness);
+                    handleDetectedPitch(detectedMatch, pitchFreq);
                 } else {
-                    lastDetectedId = detectedNoteObj.id;
-                    consecutiveFrames = 1;
+                    resetDetectionDisplays();
+                    noteHistoryBuffer = [];
                 }
-
-                if (consecutiveFrames >= REQUIRED_CONSECUTIVE) {
-                    if (currentTarget && detectedNoteObj.id === currentTarget.id) {
-                        isWaitingNext = true;
-                        correctCount++;
-                        resetDetectionState();
-                        if (testModeCheckbox.checked) {
-                            if (testTimer) clearInterval(testTimer);
-                            document.getElementById('status-msg').textContent = '정답입니다! 🎉';
-                            document.getElementById('status-msg').className = 'status-msg correct';
-                            setTimeout(() => {
-                                if (isRunning) nextTestQuestion();
-                            }, 1000);
-                        } else {
-                            document.getElementById('status-msg').textContent = '정답입니다! 멋져요! 👏';
-                            document.getElementById('status-msg').className = 'status-msg correct';
-                            setTimeout(() => {
-                                if (isRunning && !testModeCheckbox.checked) pickRandomTarget();
-                            }, 1200);
-                        }
-                    }
-                }
-            } else {
-                // 범위 밖의 음이나 소음일 경우 감지 텍스트 비우기
-                document.getElementById('current-detected').textContent = '';
-                consecutiveFrames = 0;
-                lastDetectedId = null;
             }
-        } else if (ac === -1) {
-            // 소리가 입력되지 않을 때는 감지된 음 표시를 지우고 카운트 리셋
-            document.getElementById('current-detected').textContent = '';
-            consecutiveFrames = 0;
-            lastDetectedId = null;
+
+            animationFrameId = requestAnimationFrame(processAudioLoop);
         }
 
-        animationId = requestAnimationFrame(detectPitch);
-    }
+        /* High-Precision Autocorrelation with Parabolic Peak Interpolation */
+        function autoCorrelate(buffer, sampleRate) {
+            const SIZE = buffer.length;
+            
+            // Search limits for Soprano Recorder range: 450Hz (below C5) to 1450Hz (above E6)
+            const minPeriod = Math.floor(sampleRate / 1450);
+            const maxPeriod = Math.floor(sampleRate / 450);
 
-    function autoCorrelate(buffer, sampleRate) {
-        let SIZE = buffer.length;
-        let sumOfSquares = 0;
-        for (let i = 0; i < SIZE; i++) {
-            let val = buffer[i];
-            sumOfSquares += val * val;
-        }
-        let rootMeanSquare = Math.sqrt(sumOfSquares / SIZE);
-        
-        // 민감도 조절 (노이즈 필터링하면서도 리코더 소리를 잘 잡도록 설정)
-        if (rootMeanSquare < 0.01) {
+            let bestPeriod = -1;
+            let maxCorr = 0;
+
+            for (let period = minPeriod; period <= maxPeriod; period++) {
+                let corr = 0;
+                for (let i = 0; i < SIZE - period; i++) {
+                    corr += buffer[i] * buffer[i + period];
+                }
+                if (corr > maxCorr) {
+                    maxCorr = corr;
+                    bestPeriod = period;
+                }
+            }
+
+            // Quality threshold for clear tone
+            if (bestPeriod !== -1 && maxCorr > 0.15) {
+                // Parabolic Interpolation for Sub-Integer Accuracy
+                const p1 = bestPeriod - 1;
+                const p2 = bestPeriod;
+                const p3 = bestPeriod + 1;
+
+                let c1 = 0, c2 = maxCorr, c3 = 0;
+                for (let i = 0; i < SIZE - p1; i++) c1 += buffer[i] * buffer[i + p1];
+                for (let i = 0; i < SIZE - p3; i++) c3 += buffer[i] * buffer[i + p3];
+
+                const delta = (c3 - c1) / (2 * (2 * c2 - c1 - c3));
+                const refinedPeriod = bestPeriod + (isNaN(delta) ? 0 : delta);
+
+                return sampleRate / refinedPeriod;
+            }
+
             return -1;
         }
 
-        let r1 = 0, r2 = SIZE - 1, thres = 0.2;
-        for (let i = 0; i < SIZE / 2; i++) {
-            if (Math.abs(buffer[i]) < thres) { r1 = i; break; }
-        }
-        for (let i = 1; i < SIZE / 2; i++) {
-            if (Math.abs(buffer[SIZE - i]) < thres) { r2 = SIZE - i; break; }
+        /* Cent-based Pitch Matching with Difficulty Tolerance */
+        function findClosestNote(freq, strictness = 'normal') {
+            if (freq <= 0) return null;
+
+            let maxToleranceCents = 30; // Normal: ±30 cents
+            if (strictness === 'easy') maxToleranceCents = 45; // Easy: ±45 cents
+            if (strictness === 'strict') maxToleranceCents = 18; // Strict: ±18 cents
+
+            let minCents = Infinity;
+            let closestNote = null;
+
+            for (const note of NOTE_DATA) {
+                // Cents calculation: 1200 * log2(f / f_target)
+                const cents = 1200 * Math.log2(freq / note.freq);
+                const absCents = Math.abs(cents);
+
+                if (absCents < minCents) {
+                    minCents = absCents;
+                    closestNote = { note, cents, absCents };
+                }
+            }
+
+            if (closestNote && minCents <= maxToleranceCents) {
+                return closestNote;
+            }
+            return null;
         }
 
-        buffer = buffer.slice(r1, r2);
-        SIZE = buffer.length;
+        function resetDetectionDisplays() {
+            document.getElementById('practice-detected-solfege').innerText = '-';
+            document.getElementById('practice-detected-pitch').innerText = '(--)';
+            document.getElementById('practice-tuner-pointer').style.left = '50%';
 
-        let c = new Array(SIZE).fill(0);
-        for (let i = 0; i < SIZE; i++) {
-            for (let j = 0; j < SIZE - i; j++) {
-                c[i] = c[i] + buffer[j] * buffer[j + i];
+            document.getElementById('test-detected-solfege').innerText = '-';
+            document.getElementById('test-detected-pitch').innerText = '(--)';
+            document.getElementById('test-hold-bar').style.width = '0%';
+            document.getElementById('test-hold-percentage').innerText = '0%';
+        }
+
+        /* Instantaneous Note Handling Logic */
+        function handleDetectedPitch(detectedMatch, freq) {
+            if (!detectedMatch) {
+                resetDetectionDisplays();
+                noteHistoryBuffer = [];
+                return;
+            }
+
+            const { note, cents } = detectedMatch;
+
+            // Update Practice Mode Displays
+            document.getElementById('practice-detected-solfege').innerText = note.name;
+            document.getElementById('practice-detected-pitch').innerText = `${note.pitch} (${Math.round(freq)}Hz)`;
+
+            // Cents Tuning Gauge Pointer (-50 to +50 cents)
+            const clampedCents = Math.max(-50, Math.min(50, cents));
+            const pointerPercent = 50 + (clampedCents / 50) * 45;
+            document.getElementById('practice-tuner-pointer').style.left = `${pointerPercent}%`;
+
+            // Update Test Mode Logic if Active
+            if (currentMode === 'test' && !document.getElementById('test-active-card').classList.contains('hidden')) {
+                document.getElementById('test-detected-solfege').innerText = note.name;
+                document.getElementById('test-detected-pitch').innerText = note.pitch;
+
+                // Lock check during question transition or grace period
+                if (isQuestionTransitioning || !canAcceptAnswer) {
+                    return;
+                }
+
+                const currentTargetNote = testRuntime.questions[testRuntime.currentIndex];
+                
+                // Push detection result to ring buffer (keep last 3 frames for immediate trigger)
+                noteHistoryBuffer.push(note.id);
+                if (noteHistoryBuffer.length > 3) noteHistoryBuffer.shift();
+
+                if (currentTargetNote && note.id === currentTargetNote.id) {
+                    // Count matches in ring buffer
+                    const matchesInWindow = noteHistoryBuffer.filter(id => id === currentTargetNote.id).length;
+                    
+                    // Determine required matches in ring buffer
+                    let requiredMatches = 2; // 2 out of 3 frames (~35ms)
+                    if (testConfig.strictness === 'easy') requiredMatches = 1; // Instant trigger
+                    if (testConfig.strictness === 'strict') requiredMatches = 3; // 3 out of 3 frames (~50ms)
+
+                    const holdPercent = Math.min(100, Math.round((matchesInWindow / requiredMatches) * 100));
+                    document.getElementById('test-hold-bar').style.width = `${holdPercent}%`;
+                    document.getElementById('test-hold-percentage').innerText = `${holdPercent}%`;
+
+                    // Trigger Correct Answer Instantly
+                    if (matchesInWindow >= requiredMatches) {
+                        submitQuestionAnswer(true, note);
+                    }
+                } else {
+                    document.getElementById('test-hold-bar').style.width = '0%';
+                    document.getElementById('test-hold-percentage').innerText = '0%';
+                }
             }
         }
 
-        let d = 0;
-        while (c[d] > c[d + 1]) d++;
-        let maxval = -1, maxpos = -1;
-        for (let i = d; i < SIZE; i++) {
-            if (c[i] > maxval) {
-                maxval = c[i];
-                maxpos = i;
+        /* Test Settings Handlers */
+        function selectQuestionCount(count) {
+            testConfig.questionCount = count;
+            document.querySelectorAll('.q-count-btn').forEach(btn => {
+                const val = parseInt(btn.dataset.val);
+                btn.className = val === count 
+                    ? "q-count-btn px-4 py-2.5 rounded-xl border text-sm font-bold transition border-sky-500 bg-sky-50 text-sky-700"
+                    : "q-count-btn px-4 py-2.5 rounded-xl border text-sm font-bold transition border-slate-200 bg-white text-slate-600";
+            });
+        }
+
+        function selectTimeLimit(seconds) {
+            testConfig.timeLimit = seconds;
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                const val = parseInt(btn.dataset.val);
+                btn.className = val === seconds 
+                    ? "time-btn px-3 py-2 rounded-xl border text-xs font-bold transition border-sky-500 bg-sky-50 text-sky-700"
+                    : "time-btn px-3 py-2 rounded-xl border text-xs font-bold transition border-slate-200 bg-white text-slate-600";
+            });
+        }
+
+        function selectStrictness(level) {
+            testConfig.strictness = level;
+            document.querySelectorAll('.strict-btn').forEach(btn => {
+                const val = btn.dataset.val;
+                btn.className = val === level 
+                    ? "strict-btn px-3 py-2 rounded-xl border text-xs font-bold transition border-sky-500 bg-sky-50 text-sky-700"
+                    : "strict-btn px-3 py-2 rounded-xl border text-xs font-bold transition border-slate-200 bg-white text-slate-600";
+            });
+        }
+
+        function renderTestNoteCheckboxes() {
+            const container = document.getElementById('test-note-checkboxes');
+            container.innerHTML = NOTE_DATA.map(note => {
+                const checked = testConfig.selectedNotes.includes(note.id) ? 'checked' : '';
+                return `
+                    <label class="flex items-center gap-2 text-xs font-bold text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
+                        <input type="checkbox" value="${note.id}" ${checked} onchange="toggleTestNote('${note.id}')" class="rounded text-sky-500 focus:ring-sky-400">
+                        <span>${note.name} (${note.pitch})</span>
+                    </label>
+                `;
+            }).join('');
+        }
+
+        function toggleTestNote(noteId) {
+            if (testConfig.selectedNotes.includes(noteId)) {
+                if (testConfig.selectedNotes.length <= 2) {
+                    alert("최소 2개 이상의 음계를 선택해야 합니다.");
+                    renderTestNoteCheckboxes();
+                    return;
+                }
+                testConfig.selectedNotes = testConfig.selectedNotes.filter(id => id !== noteId);
+            } else {
+                testConfig.selectedNotes.push(noteId);
+            }
+            renderTestNoteCheckboxes();
+        }
+
+        function presetSelectNotes(type) {
+            if (type === 'all') {
+                testConfig.selectedNotes = NOTE_DATA.map(n => n.id);
+            } else if (type === 'low') {
+                testConfig.selectedNotes = NOTE_DATA.filter(n => n.group === 'low').map(n => n.id);
+            } else if (type === 'high') {
+                testConfig.selectedNotes = NOTE_DATA.filter(n => n.group === 'high').map(n => n.id);
+            }
+            renderTestNoteCheckboxes();
+        }
+
+        function showTestSettings() {
+            stopTestTimers();
+            document.getElementById('test-settings-card').classList.remove('hidden');
+            document.getElementById('test-active-card').classList.add('hidden');
+        }
+
+        /* START TEST */
+        async function startTest() {
+            if (!isMicActive) {
+                await startMicrophone();
+            }
+
+            const availableNotes = NOTE_DATA.filter(n => testConfig.selectedNotes.includes(n.id));
+            if (availableNotes.length === 0) {
+                alert("테스트에 사용할 음계를 1개 이상 선택해주세요.");
+                return;
+            }
+
+            // Generate randomized question list
+            const questions = [];
+            for (let i = 0; i < testConfig.questionCount; i++) {
+                const randomNote = availableNotes[Math.floor(Math.random() * availableNotes.length)];
+                questions.push(randomNote);
+            }
+
+            // Reset test runtime
+            testRuntime = {
+                questions: questions,
+                currentIndex: 0,
+                score: 0,
+                correctCount: 0,
+                wrongCount: 0,
+                startTime: Date.now(),
+                questionStartTime: Date.now(),
+                results: [],
+                showHint: false
+            };
+
+            document.getElementById('test-settings-card').classList.add('hidden');
+            document.getElementById('test-active-card').classList.remove('hidden');
+
+            loadQuestion(0);
+        }
+
+        /* Load Question with Safety Locks */
+        function loadQuestion(index) {
+            isQuestionTransitioning = true;
+            canAcceptAnswer = false;
+            noteHistoryBuffer = [];
+            stopTestTimers();
+            resetDetectionDisplays();
+
+            testRuntime.currentIndex = index;
+            testRuntime.questionStartTime = Date.now();
+            testRuntime.showHint = false;
+
+            const currentTarget = testRuntime.questions[index];
+
+            document.getElementById('test-question-counter').innerText = `Q${index + 1} / ${testConfig.questionCount}`;
+            document.getElementById('quiz-target-solfege').innerText = currentTarget.name;
+            document.getElementById('quiz-target-pitch').innerText = `${currentTarget.pitch} (${currentTarget.freq} Hz)`;
+
+            document.getElementById('quiz-fingering-hint-box').classList.add('hidden');
+            document.getElementById('hint-btn-label').innerText = "운지법 힌트 보기";
+
+            renderStepTracker();
+            renderFingeringDiagram('quiz-fingering-diagram', currentTarget);
+
+            const timerContainer = document.getElementById('timer-bar-container');
+            const timerFill = document.getElementById('timer-progress-fill');
+            if (testConfig.timeLimit > 0) {
+                timerContainer.classList.remove('hidden');
+                timerFill.style.width = '100%';
+            } else {
+                timerContainer.classList.add('hidden');
+            }
+
+            document.getElementById('question-feedback-overlay').classList.add('hidden');
+
+            // Grace period allows audio buffer clearing before listening
+            setTimeout(() => {
+                canAcceptAnswer = true;
+                isQuestionTransitioning = false;
+                startQuestionTimer();
+            }, 500);
+        }
+
+        function renderStepTracker() {
+            const container = document.getElementById('step-tracker-container');
+            const total = testConfig.questionCount;
+            const current = testRuntime.currentIndex;
+
+            let html = '';
+            for (let i = 0; i < total; i++) {
+                const stepNum = i + 1;
+                let bgClass = "bg-slate-100 text-slate-400 border-slate-200";
+                let scaleClass = "";
+
+                if (i < current) {
+                    const res = testRuntime.results[i];
+                    if (res && res.isCorrect) {
+                        bgClass = "bg-emerald-500 text-white border-emerald-500 shadow-sm";
+                    } else {
+                        bgClass = "bg-rose-500 text-white border-rose-500 shadow-sm";
+                    }
+                } else if (i === current) {
+                    bgClass = "bg-sky-500 text-white border-sky-500 ring-4 ring-sky-100 font-black shadow-md";
+                    scaleClass = "scale-110";
+                }
+
+                html += `
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all duration-300 ${bgClass} ${scaleClass}">
+                            ${i < current ? (testRuntime.results[i]?.isCorrect ? '✓' : '✕') : stepNum}
+                        </div>
+                        ${i < total - 1 ? `<div class="w-3 sm:w-6 h-1 ${i < current ? 'bg-sky-300' : 'bg-slate-200'} rounded-full mx-0.5"></div>` : ''}
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        function startQuestionTimer() {
+            stopTestTimers();
+
+            if (testConfig.timeLimit <= 0) return;
+
+            const durationMs = testConfig.timeLimit * 1000;
+            const startTime = Date.now();
+
+            testTimer = setInterval(() => {
+                if (isQuestionTransitioning) return;
+
+                const elapsed = Date.now() - startTime;
+                const remaining = Math.max(0, durationMs - elapsed);
+                const percent = (remaining / durationMs) * 100;
+
+                const timerFill = document.getElementById('timer-progress-fill');
+                if (timerFill) timerFill.style.width = `${percent}%`;
+
+                if (remaining <= 0) {
+                    stopTestTimers();
+                    submitQuestionAnswer(false, null, 'time_out');
+                }
+            }, 100);
+        }
+
+        function stopTestTimers() {
+            if (testTimer) {
+                clearInterval(testTimer);
+                testTimer = null;
             }
         }
-        let T0 = maxpos;
-        return sampleRate / T0;
-    }
 
-    function findClosestNote(freq) {
-        let closest = null;
-        let minDiff = Infinity;
-        recorderNotes.forEach(note => {
-            let diff = Math.abs(note.freq - freq);
-            if (diff < minDiff) {
-                minDiff = diff;
-                closest = note;
+        function toggleFingeringHint() {
+            const hintBox = document.getElementById('quiz-fingering-hint-box');
+            const label = document.getElementById('hint-btn-label');
+            if (hintBox.classList.contains('hidden')) {
+                hintBox.classList.remove('hidden');
+                label.innerText = "운지법 힌트 닫기";
+            } else {
+                hintBox.classList.add('hidden');
+                label.innerText = "운지법 힌트 보기";
             }
-        });
-        // 허용 오차 범위를 40Hz로 넓혀서 음정이 살짝 흔들려도 바로바로 잡히도록 함
-        if (minDiff > 40) return null;
-        return closest;
-    }
-</script>
+        }
 
+        function skipQuestion() {
+            if (isQuestionTransitioning) return;
+            submitQuestionAnswer(false, null, 'skipped');
+        }
+
+        function submitQuestionAnswer(isCorrect, detectedNote, reason = '') {
+            if (isQuestionTransitioning) return;
+
+            isQuestionTransitioning = true;
+            canAcceptAnswer = false;
+            stopTestTimers();
+
+            const timeSpent = Math.round((Date.now() - testRuntime.questionStartTime) / 1000);
+            const targetNote = testRuntime.questions[testRuntime.currentIndex];
+
+            if (isCorrect) {
+                testRuntime.correctCount++;
+                testRuntime.score += Math.round(100 / testConfig.questionCount);
+            } else {
+                testRuntime.wrongCount++;
+            }
+
+            testRuntime.results.push({
+                note: targetNote,
+                isCorrect: isCorrect,
+                timeSpent: timeSpent,
+                reason: reason
+            });
+
+            renderStepTracker();
+
+            const overlay = document.getElementById('question-feedback-overlay');
+            const icon = document.getElementById('feedback-icon-container');
+            const mainText = document.getElementById('feedback-text-main');
+            const subText = document.getElementById('feedback-text-sub');
+
+            if (isCorrect) {
+                icon.innerText = '🎉';
+                mainText.innerText = '정답입니다!';
+                mainText.className = 'text-3xl font-black text-emerald-600';
+                subText.innerText = `${timeSpent}초 만에 성공했습니다!`;
+            } else {
+                icon.innerText = reason === 'time_out' ? '⏰' : '❌';
+                mainText.innerText = reason === 'time_out' ? '시간 초과!' : '아쉽네요!';
+                mainText.className = 'text-3xl font-black text-rose-600';
+                subText.innerText = `정답 음계: ${targetNote.name} (${targetNote.pitch})`;
+            }
+
+            overlay.classList.remove('hidden');
+
+            setTimeout(() => {
+                if (testRuntime.currentIndex >= testConfig.questionCount - 1) {
+                    finishTest();
+                } else {
+                    loadQuestion(testRuntime.currentIndex + 1);
+                }
+            }, 1000);
+        }
+
+        function finishTest() {
+            stopTestTimers();
+
+            testRuntime.score = Math.min(100, Math.round((testRuntime.correctCount / testConfig.questionCount) * 100));
+
+            document.getElementById('result-score-val').innerText = testRuntime.score;
+            document.getElementById('result-stat-total').innerText = `${testConfig.questionCount}개`;
+            document.getElementById('result-stat-correct').innerText = `${testRuntime.correctCount}개`;
+            document.getElementById('result-stat-wrong').innerText = `${testRuntime.wrongCount}개`;
+
+            let stars = "⭐⭐⭐⭐⭐";
+            let badge = "🏆";
+            if (testRuntime.score < 100) { stars = "⭐⭐⭐⭐☆"; badge = "🥇"; }
+            if (testRuntime.score < 80)  { stars = "⭐⭐⭐☆☆"; badge = "🥈"; }
+            if (testRuntime.score < 60)  { stars = "⭐⭐☆☆☆"; badge = "🥉"; }
+            if (testRuntime.score < 40)  { stars = "⭐☆☆☆☆"; badge = "💪"; }
+
+            document.getElementById('result-stars').innerText = stars;
+            document.getElementById('result-badge-icon').innerText = badge;
+
+            const listContainer = document.getElementById('result-breakdown-list');
+            listContainer.innerHTML = testRuntime.results.map((res, i) => `
+                <div class="flex items-center justify-between p-2 rounded-xl ${res.isCorrect ? 'bg-emerald-50 text-emerald-900' : 'bg-rose-50 text-rose-900'}">
+                    <span class="font-bold">Q${i + 1}. ${res.note.name} (${res.note.pitch})</span>
+                    <span class="font-semibold">${res.isCorrect ? '⭕ 정답' : '❌ 오답'} (${res.timeSpent}초)</span>
+                </div>
+            `).join('');
+
+            document.getElementById('test-result-modal').classList.remove('hidden');
+        }
+
+        function closeResultModal() {
+            document.getElementById('test-result-modal').classList.add('hidden');
+        }
+    </script>
 </body>
 </html>
