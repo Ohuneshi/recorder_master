@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>리코더 음정 연습 & 테스트</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 24px;
+            color: var(--primary-color);
+        }
+
+        .section {
+            margin-bottom: 24px;
+            padding: 20px;
+            background: #f1f5f9;
+            border-radius: 12px;
+        }
+
+        .section h2 {
+            font-size: 16px;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+
+        /* 음 선택 버튼 그리드 */
+        .note-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 8px;
+        }
+
+        .note-btn {
+            padding: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            border: 2px solid #cbd5e1;
+            background: #ffffff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .note-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .controls-row label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .controls-row input[type="number"] {
+            width: 60px;
+            padding: 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        /* 메인 게임/연습 화면 */
+        .game-panel {
+            text-align: center;
+            padding: 30px;
+            background: #ffffff;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .target-display {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        .current-detected {
+            font-size: 18px;
+            color: #64748b;
+            margin-bottom: 16px;
+            min-height: 24px;
+        }
+
+        .status-msg {
+            font-size: 20px;
+            font-weight: bold;
+            min-height: 30px;
+            margin-bottom: 20px;
+        }
+
+        .status-msg.correct { color: var(--success-color); }
+        .status-msg.incorrect { color: var(--error-color); }
+
+        .action-btns {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        button.primary-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button.primary-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        button.secondary-btn {
+            background: #e2e8f0;
+            color: var(--text-color);
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button.secondary-btn:hover {
+            background: #cbd5e1;
+        }
+
+        .progress-info {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+
+        /* 결과 화면 모달 오버레이 스타일 */
+        .result-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .result-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .result-score {
+            font-size: 42px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 15px;
+        }
+
+        .result-desc {
+            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 25px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎶 리코더 음정 연습 & 테스트</h1>
+
+    <!-- 1. 범위 설정 영역 -->
+    <div class="section" id="setup-section">
+        <h2>1. 문제 출제 범위 선택 (활성화할 음 클릭)</h2>
+        <div style="margin-bottom: 10px;">
+            <button class="secondary-btn" style="padding: 4px 10px; font-size: 12px;" onclick="selectAllNotes(true)">전체 선택</button>
+            <button class="secondary-btn" style="padding: 4px 10px; font-size: 12px;" onclick="selectAllNotes(false)">전체 해제</button>
+        </div>
+        <div class="note-grid" id="note-grid"></div>
+    </div>
+
+    <!-- 2. 모드 및 옵션 설정 -->
+    <div class="section" id="option-section">
+        <h2>2. 테스트 모드 설정</h2>
+        <div class="controls-row">
+            <label><input type="checkbox" id="test-mode-checkbox"> 테스트 모드 사용 (시간 제한 및 자동 진행)</label>
+        </div>
+        <div class="controls-row" id="test-options" style="opacity: 0.5; pointer-events: none;">
+            <div>
+                <label>제한 시간(초): </label>
+                <input type="number" id="time-limit" value="5" min="1" max="30">
+            </div>
+            <div style="margin-left: 20px;">
+                <label>총 문제 수: </label>
+                <input type="number" id="total-questions" value="10" min="1" max="50">
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 실행 패널 -->
+    <div class="game-panel">
+        <!-- 결과 화면 오버레이 -->
+        <div class="result-overlay" id="result-overlay">
+            <div class="result-title">🎉 테스트 종료!</div>
+            <div class="result-score" id="result-score-text">100점</div>
+            <div class="result-desc" id="result-desc-text">총 10문제 중 10문제 정답</div>
+            <button class="primary-btn" onclick="closeResultOverlay()">확인</button>
+        </div>
+
+        <div class="progress-info" id="progress-info" style="display: none;">문제 1 / 10</div>
+        <div style="font-size: 14px; color: #64748b;">제시된 음</div>
+        <div class="target-display" id="target-note">-</div>
+        <div class="current-detected" id="current-detected">마이크 대기 중</div>
+        <div class="status-msg" id="status-msg">마이크 권한을 허용하고 시작해주세요</div>
+        
+        <div class="action-btns">
+            <button class="primary-btn" id="start-btn" onclick="startSession()">연습/테스트 시작</button>
+            <button class="secondary-btn" id="stop-btn" onclick="stopSession()" style="display: none;">중지</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const recorderNotes = [
+        { id: 'C5', name: '도 (C5)', kor: '도', freq: 523.25 },
+        { id: 'D5', name: '레 (D5)', kor: '레', freq: 587.33 },
+        { id: 'E5', name: '미 (E5)', kor: '미', freq: 659.25 },
+        { id: 'F5', name: '파 (F5)', kor: '파', freq: 698.46 },
+        { id: 'G5', name: '솔 (G5)', kor: '솔', freq: 783.99 },
+        { id: 'A5', name: '라 (A5)', kor: '라', freq: 880.00 },
+        { id: 'B5', name: '시 (B5)', kor: '시', freq: 987.77 },
+        { id: 'C6', name: '높은도 (C6)', kor: '높은도', freq: 1046.50 },
+        { id: 'D6', name: '높은레 (D6)', kor: '높은레', freq: 1174.66 },
+        { id: 'E6', name: '높은미 (E6)', kor: '높은미', freq: 1318.51 },
+        { id: 'F6', name: '높은파 (F6)', kor: '높은파', freq: 1396.91 },
+        { id: 'G6', name: '높은솔 (G6)', kor: '높은솔', freq: 1567.98 }
+    ];
+
+    let activeNotes = new Set(recorderNotes.map(n => n.id));
+    let isRunning = false;
+    let currentTarget = null;
+    let isWaitingNext = false;
+    let audioContext = null;
+    let analyser = null;
+    let microphone = null;
+    let animationId = null;
+
+    // 점수 및 테스트 통계 변수
+    let testTimer = null;
+    let timeLeft = 5;
+    let questionCount = 10;
+    let currentQIndex = 0;
+    let correctCount = 0;
+
+    // 음 잔류/연속성 판정용 변수 (반응 속도를 높이기 위해 프레임 조건 완화)
+    let consecutiveFrames = 0;
+    let lastDetectedId = null;
+    const REQUIRED_CONSECUTIVE = 2; // 2프레임만 일치해도 빠르게 인식
+
+    const noteGrid = document.getElementById('note-grid');
+    recorderNotes.forEach(note => {
+        const btn = document.createElement('button');
+        btn.className = 'note-btn active';
+        btn.textContent = note.kor;
+        btn.id = `btn-${note.id}`;
+        btn.onclick = () => toggleNote(note.id, btn);
+        noteGrid.appendChild(btn);
+    });
+
+    function toggleNote(id, btn) {
+        if (isRunning) return;
+        if (activeNotes.has(id)) {
+            activeNotes.delete(id);
+            btn.classList.remove('active');
+        } else {
+            activeNotes.add(id);
+            btn.classList.add('active');
+        }
+    }
+
+    function selectAllNotes(select) {
+        if (isRunning) return;
+        activeNotes.clear();
+        recorderNotes.forEach(note => {
+            const btn = document.getElementById(`btn-${note.id}`);
+            if (select) {
+                activeNotes.add(note.id);
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+
+    const testModeCheckbox = document.getElementById('test-mode-checkbox');
+    const testOptions = document.getElementById('test-options');
+    testModeCheckbox.onchange = () => {
+        if (testModeCheckbox.checked) {
+            testOptions.style.opacity = '1';
+            testOptions.style.pointerEvents = 'auto';
+        } else {
+            testOptions.style.opacity = '0.5';
+            testOptions.style.pointerEvents = 'none';
+        }
+    };
+
+    async function setupAudio() {
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            microphone = audioContext.createMediaStreamSource(stream);
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 2048;
+            microphone.connect(analyser);
+            return true;
+        } catch (err) {
+            alert('마이크 접근 권한이 필요합니다. 브라우저 설정을 확인해주세요.');
+            console.error(err);
+            return false;
+        }
+    }
+
+    async function startSession() {
+        if (activeNotes.size === 0) {
+            alert('출제할 음을 최소 하나 이상 선택해주세요!');
+            return;
+        }
+
+        if (!audioContext) {
+            const success = await setupAudio();
+            if (!success) return;
+        } else if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+        }
+
+        isRunning = true;
+        isWaitingNext = false;
+        correctCount = 0;
+        resetDetectionState();
+
+        document.getElementById('result-overlay').style.display = 'none';
+        document.getElementById('start-btn').style.display = 'none';
+        document.getElementById('stop-btn').style.display = 'inline-block';
+        document.getElementById('setup-section').style.opacity = '0.5';
+        document.getElementById('setup-section').style.pointerEvents = 'none';
+        document.getElementById('option-section').style.opacity = '0.5';
+        document.getElementById('option-section').style.pointerEvents = 'none';
+
+        if (testModeCheckbox.checked) {
+            questionCount = parseInt(document.getElementById('total-questions').value) || 10;
+            currentQIndex = 0;
+            document.getElementById('progress-info').style.display = 'block';
+            nextTestQuestion();
+        } else {
+            document.getElementById('progress-info').style.display = 'none';
+            pickRandomTarget();
+            document.getElementById('status-msg').textContent = '리코더로 해당 음을 불어보세요!';
+            document.getElementById('status-msg').className = 'status-msg';
+        }
+
+        detectPitch();
+    }
+
+    function stopSession() {
+        isRunning = false;
+        isWaitingNext = false;
+        if (animationId) cancelAnimationFrame(animationId);
+        if (testTimer) clearInterval(testTimer);
+
+        document.getElementById('start-btn').style.display = 'inline-block';
+        document.getElementById('stop-btn').style.display = 'none';
+        document.getElementById('setup-section').style.opacity = '1';
+        document.getElementById('setup-section').style.pointerEvents = 'auto';
+        document.getElementById('option-section').style.opacity = '1';
+        document.getElementById('option-section').style.pointerEvents = 'auto';
+        document.getElementById('progress-info').style.display = 'none';
+        
+        document.getElementById('target-note').textContent = '-';
+        document.getElementById('current-detected').textContent = '마이크 대기 중';
+        document.getElementById('status-msg').textContent = '연습이 중지되었습니다.';
+        document.getElementById('status-msg').className = 'status-msg';
+    }
+
+    function resetDetectionState() {
+        consecutiveFrames = 0;
+        lastDetectedId = null;
+    }
+
+    function pickRandomTarget() {
+        const notesArr = Array.from(activeNotes);
+        const randomIndex = Math.floor(Math.random() * notesArr.length);
+        const targetId = notesArr[randomIndex];
+        currentTarget = recorderNotes.find(n => n.id === targetId);
+        document.getElementById('target-note').textContent = currentTarget.kor;
+        isWaitingNext = false;
+        resetDetectionState();
+    }
+
+    function nextTestQuestion() {
+        if (!isRunning) return;
+
+        if (testTimer) clearInterval(testTimer);
+
+        if (currentQIndex >= questionCount) {
+            const score = Math.round((correctCount / questionCount) * 100);
+            showResultOverlay(score, questionCount, correctCount);
+            stopSession();
+            return;
+        }
+
+        currentQIndex++;
+        document.getElementById('progress-info').textContent = `문제 ${currentQIndex} / ${questionCount}`;
+        pickRandomTarget();
+        
+        const timeLimitSec = parseInt(document.getElementById('time-limit').value) || 5;
+        timeLeft = timeLimitSec;
+        document.getElementById('status-msg').textContent = `남은 시간: ${timeLeft}초`;
+        document.getElementById('status-msg').className = 'status-msg';
+
+        testTimer = setInterval(() => {
+            if (!isRunning) {
+                clearInterval(testTimer);
+                return;
+            }
+
+            timeLeft--;
+            if (timeLeft > 0) {
+                document.getElementById('status-msg').textContent = `남은 시간: ${timeLeft}초`;
+            } else {
+                clearInterval(testTimer);
+                if (isWaitingNext) return;
+                isWaitingNext = true;
+                resetDetectionState();
+                document.getElementById('status-msg').textContent = '시간 초과!';
+                document.getElementById('status-msg').className = 'status-msg incorrect';
+                setTimeout(() => {
+                    if (isRunning) nextTestQuestion();
+                }, 1000);
+            }
+        }, 1000);
+    }
+
+    function showResultOverlay(score, total, correct) {
+        document.getElementById('result-score-text').textContent = `${score}점`;
+        document.getElementById('result-desc-text').textContent = `총 ${total}문제 중 ${correct}문제 정답`;
+        document.getElementById('result-overlay').style.display = 'flex';
+    }
+
+    function closeResultOverlay() {
+        document.getElementById('result-overlay').style.display = 'none';
+        document.getElementById('target-note').textContent = '-';
+        document.getElementById('current-detected').textContent = '마이크 대기 중';
+        document.getElementById('status-msg').textContent = '연습/테스트를 준비하세요.';
+        document.getElementById('status-msg').className = 'status-msg';
+    }
+
+    function detectPitch() {
+        if (!isRunning) return;
+
+        const bufferLength = analyser.fftSize;
+        const buffer = new Float32Array(bufferLength);
+        analyser.getFloatTimeDomainData(buffer);
+
+        let ac = autoCorrelate(buffer, audioContext.sampleRate);
+
+        if (ac !== -1 && !isWaitingNext) {
+            let detectedNoteObj = findClosestNote(ac);
+            if (detectedNoteObj) {
+                // 마이크 소리 감지 시 화면에 표시
+                document.getElementById('current-detected').textContent = `현재 감지된 음: ${detectedNoteObj.kor} (${Math.round(ac)}Hz)`;
+
+                if (detectedNoteObj.id === lastDetectedId) {
+                    consecutiveFrames++;
+                } else {
+                    lastDetectedId = detectedNoteObj.id;
+                    consecutiveFrames = 1;
+                }
+
+                if (consecutiveFrames >= REQUIRED_CONSECUTIVE) {
+                    if (currentTarget && detectedNoteObj.id === currentTarget.id) {
+                        isWaitingNext = true;
+                        correctCount++;
+                        resetDetectionState();
+                        if (testModeCheckbox.checked) {
+                            if (testTimer) clearInterval(testTimer);
+                            document.getElementById('status-msg').textContent = '정답입니다! 🎉';
+                            document.getElementById('status-msg').className = 'status-msg correct';
+                            setTimeout(() => {
+                                if (isRunning) nextTestQuestion();
+                            }, 1000);
+                        } else {
+                            document.getElementById('status-msg').textContent = '정답입니다! 멋져요! 👏';
+                            document.getElementById('status-msg').className = 'status-msg correct';
+                            setTimeout(() => {
+                                if (isRunning && !testModeCheckbox.checked) pickRandomTarget();
+                            }, 1200);
+                        }
+                    }
+                }
+            } else {
+                // 범위 밖의 음이나 소음일 경우 감지 텍스트 비우기
+                document.getElementById('current-detected').textContent = '';
+                consecutiveFrames = 0;
+                lastDetectedId = null;
+            }
+        } else if (ac === -1) {
+            // 소리가 입력되지 않을 때는 감지된 음 표시를 지우고 카운트 리셋
+            document.getElementById('current-detected').textContent = '';
+            consecutiveFrames = 0;
+            lastDetectedId = null;
+        }
+
+        animationId = requestAnimationFrame(detectPitch);
+    }
+
+    function autoCorrelate(buffer, sampleRate) {
+        let SIZE = buffer.length;
+        let sumOfSquares = 0;
+        for (let i = 0; i < SIZE; i++) {
+            let val = buffer[i];
+            sumOfSquares += val * val;
+        }
+        let rootMeanSquare = Math.sqrt(sumOfSquares / SIZE);
+        
+        // 민감도 조절 (노이즈 필터링하면서도 리코더 소리를 잘 잡도록 설정)
+        if (rootMeanSquare < 0.01) {
+            return -1;
+        }
+
+        let r1 = 0, r2 = SIZE - 1, thres = 0.2;
+        for (let i = 0; i < SIZE / 2; i++) {
+            if (Math.abs(buffer[i]) < thres) { r1 = i; break; }
+        }
+        for (let i = 1; i < SIZE / 2; i++) {
+            if (Math.abs(buffer[SIZE - i]) < thres) { r2 = SIZE - i; break; }
+        }
+
+        buffer = buffer.slice(r1, r2);
+        SIZE = buffer.length;
+
+        let c = new Array(SIZE).fill(0);
+        for (let i = 0; i < SIZE; i++) {
+            for (let j = 0; j < SIZE - i; j++) {
+                c[i] = c[i] + buffer[j] * buffer[j + i];
+            }
+        }
+
+        let d = 0;
+        while (c[d] > c[d + 1]) d++;
+        let maxval = -1, maxpos = -1;
+        for (let i = d; i < SIZE; i++) {
+            if (c[i] > maxval) {
+                maxval = c[i];
+                maxpos = i;
+            }
+        }
+        let T0 = maxpos;
+        return sampleRate / T0;
+    }
+
+    function findClosestNote(freq) {
+        let closest = null;
+        let minDiff = Infinity;
+        recorderNotes.forEach(note => {
+            let diff = Math.abs(note.freq - freq);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closest = note;
+            }
+        });
+        // 허용 오차 범위를 40Hz로 넓혀서 음정이 살짝 흔들려도 바로바로 잡히도록 함
+        if (minDiff > 40) return null;
+        return closest;
+    }
+</script>
+
+</body>
+</html>
